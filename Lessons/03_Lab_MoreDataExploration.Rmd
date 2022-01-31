@@ -40,19 +40,19 @@ vector3
 vector1[3] # 
 
 # Matrices ----
-matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # 
+matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # counts down
 matrix1
-matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) #
+matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) # counts across
 matrix2
 matrix3 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE, # return after comma continues the line
                   dimnames = list(c("uno", "dos", "tres", "cuatro", "cinco"), 
-                                  c("un", "deux", "trois", "cat"))) #
+                                  c("un", "deux", "trois", "cat"))) # dimension names 
 
-matrix1[4, ] #
-matrix1[ , 3] #
-matrix1[c(12, 14)] #
-matrix1[c(12:14)] #
-matrix1[2:4, 1:3] #
+matrix1[4, ] # gives every value in row 4 
+matrix1[ , 3] # gives every value in column 3
+matrix1[c(12, 14)] # gives 12th and 14th item
+matrix1[c(12:14)] # gives values from 12th, 13th, and 14th (gives a slice)
+matrix1[2:4, 1:3] # gives rows 2,3,4 and columns 1,2,3
 
 cells <- c(1, 26, 24, 68)
 rnames <- c("R1", "R2")
@@ -63,7 +63,7 @@ matrix4
 
 # Lists ---- 
 list1 <- list(name = "Maria", mynumbers = vector1, mymatrix = matrix1, age = 5.3); list1
-list1[[2]]
+list1[[2]] # gets second item in the list (same as doing list1$mynumbers)
 
 # Data Frames ----
 d <- c(1, 2, 3, 4) # What type of vector?
@@ -72,8 +72,8 @@ f <- c(TRUE, TRUE, TRUE, FALSE) # What type of vector?
 dataframe1 <- data.frame(d,e,f) #
 names(dataframe1) <- c("ID","Color","Passed"); View(dataframe1) # 
 
-dataframe1[1:2,] # 
-dataframe1[c("ID","Passed")] # 
+dataframe1[1:2,] # first 2 rows and all columns
+dataframe1[c("ID","Passed")] # gives ID and Passed columns 
 dataframe1$ID
 
 ```
@@ -93,25 +93,41 @@ Question: In the R chunk below, write "dataframe1$". Press `tab` after you type 
 Find a ten-day forecast of temperatures (Fahrenheit) for Durham, North Carolina. Create two vectors, one representing the high temperature on each of the ten days and one representing the low.
 
 ```{r}
-
+highF <- c(44,50,33,43,51,54,59,66,57,42)
+lowF <- c(27,27,15,25,26,35,47,53,30,22)
 ```
 
 Now, create two additional vectors that include the ten-day forecast for the high and low temperatures in Celsius. Use a function to create the two new vectors from your existing ones in Fahrenheit.
 
 ```{r}
-
+FtoC <- function(x){
+  tempC <- round((x - 32)*(5/9),2)
+}
+highC <- FtoC(highF)
+highC
+lowC <- FtoC(lowF)
+lowC
 ```
 
 Combine your four vectors into a data frame and add informative column names.
 
 ```{r}
-
+df1 <- data.frame(highF,highC,lowF,lowC)
 ```
 
 Use the common functions `summary` and `sd` to obtain basic data summaries of the ten-day forecast. How would you call these functions differently for the entire data frame vs. a single column? Attempt to demonstrate both options below.
 
 ```{r}
+summary(df1)
+summary(df1$highF)
+summary(df1$highC)
+summary(df1$lowF)
+summary(df1$lowC)
 
+sd(df1$highF)
+sd(df1$highC)
+sd(df1$lowF)
+sd(df1$lowC)
 ```
 
 ### Date objects
