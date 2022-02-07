@@ -29,11 +29,11 @@ library(tidyverse)
 library(lubridate)
 NTL.phys.data <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", stringsAsFactors = TRUE)
 
-colnames(NTL.phys.data)
-head(NTL.phys.data)
-summary(NTL.phys.data)
-str(NTL.phys.data)
-dim(NTL.phys.data)
+colnames(NTL.phys.data) # gives all column names
+head(NTL.phys.data) # gives first few observations(rows)
+summary(NTL.phys.data) # summaries for each of the columns 
+str(NTL.phys.data) # gives data type for each column
+dim(NTL.phys.data) # gives data dimensions 
 
 class(NTL.phys.data$sampledate)
 # Format sampledate as date
@@ -63,24 +63,24 @@ vignette("dplyr")
 Filtering allows us to choose certain rows (observations) in our dataset.
 
 Here are the relevant commands used in the `filter` function. Add some notes to designate what these commands mean. 
-`==`
-`!=`
+`==` values equal
+`!=` values not equal
 `<`
 `<=`
 `>`
 `>=`
-`&`
-`|`
+`&` both should be true 
+`|` one or the other should be true
 
 ```{r}
 class(NTL.phys.data$lakeid)
 class(NTL.phys.data$depth)
 
 # matrix filtering
-NTL.phys.data.surface1 <- NTL.phys.data[NTL.phys.data$depth == 0,]
+NTL.phys.data.surface1 <- NTL.phys.data[NTL.phys.data$depth == 0,] # look at surface information - only rows with a 0 in the depth column 
 
 # dplyr filtering
-NTL.phys.data.surface2 <- filter(NTL.phys.data, depth == 0)
+NTL.phys.data.surface2 <- filter(NTL.phys.data, depth == 0) 
 NTL.phys.data.surface3 <- filter(NTL.phys.data, depth < 0.25)
 
 # Did the methods arrive at the same result?
@@ -93,12 +93,12 @@ dim(NTL.phys.data.surface3)
 
 # Choose multiple conditions to filter
 summary(NTL.phys.data$lakename)
-NTL.phys.data.PeterPaul1 <- filter(NTL.phys.data, lakename == "Paul Lake" | lakename == "Peter Lake")
+NTL.phys.data.PeterPaul1 <- filter(NTL.phys.data, lakename == "Paul Lake" | lakename == "Peter Lake") # choose all instances of Paul Lake or Peter Lake
 NTL.phys.data.PeterPaul2 <- filter(NTL.phys.data, lakename != "Central Long Lake" & 
                                      lakename != "Crampton Lake" & lakename != "East Long Lake" &
                                      lakename != "Hummingbird Lake" & lakename != "Tuesday Lake" &
-                                     lakename != "Ward Lake" & lakename != "West Long Lake")
-NTL.phys.data.PeterPaul3 <- filter(NTL.phys.data, lakename %in% c("Paul Lake", "Peter Lake"))
+                                     lakename != "Ward Lake" & lakename != "West Long Lake") # get everything that is not the lakes listed
+NTL.phys.data.PeterPaul3 <- filter(NTL.phys.data, lakename %in% c("Paul Lake", "Peter Lake")) # cleaner way of filtering dataset
 
 # Choose a range of conditions of a numeric or integer variable
 summary(NTL.phys.data$daynum)
@@ -126,8 +126,8 @@ Question: Why don't we filter using row numbers?
 Arranging allows us to change the order of rows in our dataset. By default, the arrange function will arrange rows in ascending order.
 
 ```{r}
-NTL.phys.data.depth.ascending <- arrange(NTL.phys.data, depth)
-NTL.phys.data.depth.descending <- arrange(NTL.phys.data, desc(depth))
+NTL.phys.data.depth.ascending <- arrange(NTL.phys.data, depth) # depth in ascending order 
+NTL.phys.data.depth.descending <- arrange(NTL.phys.data, desc(depth)) # depth in descending order
 
 # Exercise: 
 # Arrange NTL.phys.data by temperature, in descending order. 
