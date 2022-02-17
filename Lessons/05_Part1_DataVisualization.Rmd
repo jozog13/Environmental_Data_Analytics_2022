@@ -154,7 +154,7 @@ NvsP <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth)) +
   geom_point() +
   geom_smooth(method = lm) +
-  geom_abline(aes(slope = 16, intercept = 0))
+ geom_abline(aes(slope = 16, intercept = 0))
 print(NvsP)
 
 ```
@@ -178,7 +178,7 @@ Nutrientplot4 <-
                stackdir = "center", position = "dodge", dotsize = 2) #
 print(Nutrientplot4)
 
-# Violin plot
+# Violin plot (like a rotated density plot)
 Nutrientplot5 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
   geom_violin(aes(color = nutrient)) #
