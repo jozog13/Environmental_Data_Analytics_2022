@@ -71,9 +71,8 @@ Are Ozone levels below the threshold for "good" AQI index (0-50)?
 
 ```{r}
 
-
 summary(EPAair$Ozone)
-EPAair.subsample <- sample_n(EPAair, 5000)
+EPAair.subsample <- sample_n(EPAair, 5000) # gets a random subset of 5000 of the records (shapiro test can only be done on up to 5000 values)
 
 # Evaluate assumption of normal distribution
 shapiro.test((EPAair.subsample$Ozone))
@@ -94,7 +93,8 @@ print(Ozone.plot)
 
 Write a sentence or two about the results of this test. Include both the results of the test and an interpretation that puts the findings in context of the research question.
 
-> 
+> ozone levels are below 50ppm threshold using a one-sided t-test (p < 2.2e-16)
+> our sample failed the shaprio-wilk test of normality
 
 ### Two-sample t-test
 
@@ -116,16 +116,15 @@ ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
 
 # Format as a t-test
 O3.twosample <- t.test(EPAair$Ozone ~ EPAair$Year)
-O3.twosample
+O3.twosample # no R2 here because we are looking at categories (not continuous values)
 O3.twosample$p.value
 
 # Format as a GLM
 O3.twosample2 <- lm(EPAair$Ozone ~ EPAair$Year)
 summary(O3.twosample2)
 
+par(mfrow=c(2,2))
 plot(O3.twosample2)
-
-
 ```
 
 
@@ -152,6 +151,43 @@ Create three plots, each with appropriately formatted axes and legends. Choose a
 ```{r}
 #Exercise 2:
 
+# need Year as factor
+EPAair$Year <- as.factor(EPAair$Year)
+
+# density plot
+ggplot(EPAair, aes(Ozone, fill = Year, colour=Year)) +
+  geom_density(alpha = 0.5) 
+  #geom_density_ridges(aes(fill=Year))
+
+# John's version
+ggplot(EPAair, aes(x=Ozone,fill=as.factor(Year))) +
+         geom_density(alpha=0.5) +
+         labs(title="Density plot: ozone by year",
+              x="ozone AQI value",
+              y="density",
+              fill="Year") +
+         scale_fill_manual(values=c('blue','yellow'))
+
+# boxplot
+ggplot(EPAair, aes(x=Year, y=Ozone)) +
+  geom_boxplot()
+
+# John's version 
+ggplot(EPAair, aes(x=as.factor(Year), y=Ozone)) +
+  geom_boxplot() +
+  stat_summary(geom="text", fun=max, vjust=-1,size=4,label=c("a","b"), color="red") +
+  labs(x="",y="Ozone AQI value") +
+  ylim(0,150)
+
+# fun=max : looks at max value of y in each of the groupings, then want to go up from there to put the label above
+# vjust : dicates where the label is going to be placed 
+
+# violin plot - combo of mine and John's version
+ggplot(EPAair, aes(x = as.factor(Year), y = Ozone)) +
+  geom_violin(draw_quantiles = 0.5) +
+  stat_summary(geom="text", fun=max, vjust=-1,size=4,label=c("a","b"), color="red") +
+  labs(x="",y="Ozone AQI value") +
+  ylim(0,150)
 
 ```
 
@@ -164,12 +200,15 @@ For the NTL-LTER dataset, can we predict PM2.5 from Ozone?
 ```{r}
 
 #Exercise 3: Run a linear regression PM2.5 by Ozone. Find the p-value and R-squared value. 
-
-
+lm1 <- lm(data=EPAair, PM2.5~Ozone)
+summary(lm1)
+# p-value < 2.2e-16
+# R2 = 0.1316
 
 #Exercise 4: Build a scatterplot. Add a line and standard error for the linear regression. 
-
-
+ggplot(EPAair, aes(x=Ozone,y=PM2.5)) +
+  geom_point(alpha=0.4) +
+  geom_smooth(method=lm, se=FALSE)
 
 ```
 
@@ -181,8 +220,12 @@ What other variables can we add to improve model?
 ```{r}
 
 #Exercise 5: Build correlation plots and identify more possible explanatory variables to add to the regression.
+library(corrplot)
 
+the_cor <- cor(EPAair %>% select(meanLat:PM2.5) %>% drop_na())
 
+EPAair_corr <- cor(EPAair)
+corrplot.mixed(EPAair,method="ellipse")
 
 
 #Exercise 6: Choose a model by AIC in a Stepwise Algorithm. Do the results from AIC match the variables you selected on Exercise 5?
