@@ -52,10 +52,10 @@ litter$collectDate <- as.Date(litter$collectDate, format = "%Y-%m-%d")
 
 ```{r}
 #3
-theme1 <- theme_bw(base_size=12) +
+theme <- theme_bw(base_size=12) +
   theme(panel.border=element_rect(fill="transparent",color="gray",size=1),
         plot.title = element_text(hjust = 0.5), legend.position="right")
-theme_set(theme1)
+theme_set(theme)
 ```
 
 ## Create graphs
