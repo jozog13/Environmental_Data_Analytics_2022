@@ -45,7 +45,6 @@ EnoDischarge$datetime <- as.Date(EnoDischarge$datetime, format = "%Y-%m-%d")
 wind_data <- read.csv(file="./Data/Raw/Wind_Speed_PortArthurTX.csv",header=TRUE,
                       stringsAsFactors = TRUE)
 wind_data$DATE <- ym(wind_data$DATE)
-
 ```
 
 
@@ -234,13 +233,13 @@ wind_data_trend1 <- Kendall::SeasonalMannKendall(wind_data_ts)
 
 # Inspect results
 wind_data_trend1
-summary(wind_data_trend1)
+summary(wind_data_trend1) # null hyp is that data trend is stationary 
 
 
 wind_data_trend2 <- trend::smk.test(wind_data_ts)
 # Inspect results
 wind_data_trend2
-summary(wind_data_trend2)
+summary(wind_data_trend2) # 
 
 #Visualization
 wind_data_plot <-
@@ -255,7 +254,7 @@ print(wind_data_plot)
 
 What would we conclude based on these findings? 
 
-> Answer:
+> Answer: negative slope = there is a decreasing trend of avg wind speed over time
 
 
 ## Forecasting with Autoregressive and Moving Average Models (ARMA)
