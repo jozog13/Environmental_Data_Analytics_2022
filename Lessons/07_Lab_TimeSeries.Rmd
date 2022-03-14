@@ -57,7 +57,7 @@ Rainfall_BR_processed <-
   Rainfall_BR %>% 
   rename( Rainfall = Rainfall....MM.) %>% 
   separate(Statistics,c("Null","Month","Null2")," ") %>% 
-  mutate( Date = my(paste0(Month,"-",Year))) %>% 
+  mutate( Date = my(paste0(Month,"-",Year))) %>% # paste0 = there is no seperator between the columns being joined 
   select(Date,Rainfall)
 
 #Exercise 3: Repeat exercise 2 to the temperature dataset.
@@ -71,7 +71,8 @@ Temp_BR_processed <-
 
 #Exercise 4: Join the temperature and rainfall into one tidy data frame with 3 columns: Date, Rainfall and Temperature.
 BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
-  
+# not good to use column bind in time series - use join function instead
+# inner-join - R will assign NA to spots with no data 
            
 ```
 
@@ -81,16 +82,17 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 ```{r}
 
 #Exercise 5: Check if there is any missing data for both temperature and rainfall series.
-
-
-
+summary(BRA_complete$Rainfall)
+summary(BRA_complete$Temperature_C)
 
 #Exercise 6: Plot both series over time on separate plots. Add a trend line using geom_smooth(). Can you say something about the trend just by visualizing the data?
+ggplot(BRA_complete, aes(x=Date,y=Rainfall)) +
+  geom_line() +
+  geom_smooth(method="lm")
 
-
-
-
-
+ggplot(BRA_complete, aes(x=Date,y=Temperature_C)) +
+  geom_line() + 
+  geom_smooth(method="lm")
 
 ```
 
@@ -99,7 +101,11 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 ```{r}
 #Exercise 7: Create a time series objects for each series using ts(). Make sure you specify the starting point and frequency.
 
+fmonth <- month(first(BRA_complete$Date))
+fyear <- year(first(BRA_complete$Date))
 
+BRA_tempTS <- ts(BRA_complete$Temperature_C, start = c(fyear,fmonth), frequency = 12)
+BRA_rainTS <- ts(BRA_complete$Rainfall, start = c(fyear,fmonth), frequency = 12)
 
 ```
 
@@ -120,26 +126,38 @@ The `stl` function decomposes the time series object into its component parts. W
 
 # Exercise 8: Use the stl() function to decompose both series. 
 # Visualize the decomposed series using plot(). What components can you identify?
+BRA_temmp_decom <- stl(BRA_tempTS, s.window = "periodic")
+BRA_rain_decom <- stl(BRA_rainTS, s.window = "periodic")
 
-
-
-
-
+plot(BRA_temmp_decom)
+plot(BRA_rain_decom)
 
 # Exercise 9: Use the times series object generated with the stl() to extract the 
 # components of each series and turn them into data frames.
 
+BRA_temp_Components <- as.data.frame(BRA_temmp_decom$time.series[,1:3])
+BRA_rain_Components <- as.data.frame(BRA_rain_decom$time.series[,1:3])
 
+BRA_rain_Components <- mutate(BRA_rain_Components,
+        Observed = BRA_complete$Rainfall,     
+        Date = BRA_complete$Date)
 
-
-
+BRA_temp_Components <- mutate(BRA_temp_Components,
+        Observed = BRA_complete$Temperature_C,     
+        Date = BRA_complete$Date)
 
 # Exercise 10: Visualize how the trend maps onto the data for both series
+ggplot(BRA_rain_Components) +
+  geom_line(aes(y = Observed, x = Date)) +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff") +
+  #geom_hline(yintercept = 0, lty = 2) +
+  ylab("rainfall")
 
-
-
-
-
+ggplot(BRA_temp_Components) +
+  geom_line(aes(y = Observed, x = Date),  size = 0.25) +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff") +
+  #geom_hline(yintercept = 0, lty = 2) +
+  ylab("temperature (C)")
 
 ```
 
@@ -185,3 +203,33 @@ What would we conclude based on these findings?
 > Answer:
 
 
+
+CLASS NOTES:
+3 components: trend, seasonality, and remainder (optional component: cyclical)
+seasonal vs cyclical
+  - seasonal: within 1 calendar year
+  - cyclical: repeated pattern over a longer duration
+stl function - receives a time series object and tries to identify the 3 components
+if sum 3 components, get the original data 
+cannot get rid of NAs - can drop that data and have a gap
+trend detection methods 
+  - scatter plot of time series does not show the movement of the series : use line plot 
+cannot test for seasonal component with MK test 
+  - need to use seasonal MK test
+how to get rid of seasonal component
+  - subtract seasonal comp from original data
+  - can group seasonal data for yearly averages 
+types of trends:
+  1. deterministic
+        - easy to observe, constant over time
+        - can approx trend with a regression line
+        - MK and Spearman
+  2. stochastic
+        - changes pace over time
+        - augmented dickey fuller
+        
+        
+        
+        
+        
+        
