@@ -32,7 +32,7 @@ library(tidyverse)
 library(agricolae)
 library(lubridate)
 
-chemphys <-  read.csv("../Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", 
+chemphys <-  read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", 
                       stringsAsFactors = TRUE)
 chemphys$sampledate<-as.Date(chemphys$sampledate, format = "%m/%d/%y")
 
