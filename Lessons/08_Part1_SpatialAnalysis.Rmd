@@ -119,7 +119,10 @@ EPAair.sf <- EPAair.sites %>%
            crs=4326)
 
 #View the data using the methods above...
-
+#View using ggplot
+ggplot(data=EPAair.sf) + geom_sf()
+#View using mapview
+mapview(EPAair.sf)
 ```
 
 ### EXERCISE: Creating a spatial dataframe from known coordinates
@@ -244,8 +247,6 @@ mean_distances <-  rowMeans(distance_matrix)
 #Add as a column to the epa sites
 EPAair.sf.utm  <-  EPAair.sf.utm %>% 
   bind_cols(mean_distances)
-
-
 
 ```
 

@@ -49,6 +49,7 @@ library(lubridate)
 library(sf)
 library(mapview)
 library(RColorBrewer)
+library(leaflet)
 ```
 
 # 2 READING IN SPATIAL DATA
@@ -76,6 +77,7 @@ st_crs(epa_pm25_sites_sf)$epsg
 #Plot the data
 ggplot(data=epa_pm25_sites_sf) +
   geom_sf()
+mapview(epa_pm25_sites_sf)
 ```
 
 ## 2.2 Reading shapefiles into R with `sf`
@@ -97,7 +99,6 @@ colnames(counties_sf)
 #
 st_crs(counties_sf) 
 
-
 #
 nrow(counties_sf)
 
@@ -109,6 +110,7 @@ head(counties_sf)
 
 #Plot the data, colored by area of land in each county
 mapView(counties_sf, zcol = "AWATER")
+mapView(counties_sf, zcol = "ALAND")
 ```
 
 ### 2.2.2 Read in and explore 8-digit HUC watersheds for NC
@@ -117,20 +119,23 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
-
+huc8_sf <- st_read('./Data/Spatial/NCHUC8.shp')
 
 #Reveal the columns
-
+colnames(huc8_sf)
 
 #Check the CRS
-
+st_crs(huc8_sf)
 
 #Examine some records
-
+head(huc8_sf)
 
 #View the data as a map, colored by the acreage in each
+mapView(huc8_sf, zcol="ACRES")
 
-
+ggplot(data = huc8_sf) +
+  geom_sf(aes(fill = ACRES)) +
+  scale_fill_continuous(type="viridis")
 ```
 
 ### 2.2.3 Challenge!
@@ -139,12 +144,16 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
-
-
+upperNeuse_sf <- st_read('./Data/Spatial/NCHUC8.shp') %>%
+  filter(SUBBASIN == "Upper Neuse")
 
 #Create a map
+mapview(huc8_sf, col.regions="orange") +
+  mapview(upperNeuse_sf, col.regions="purple")
 
-
+ggplot() +
+  geom_sf(data=huc8_sf, fill = "orange") +
+  geom_sf(data = upperNeuse_sf, fill = "purple")
 ```
 
 ### 2.2.4 Reading in GeoJSON data
@@ -168,6 +177,7 @@ nrow(powerplants_sf)
 
 #View on a map - specify the geometry column to draw faster
 plot(powerplants_sf$geometry)
+mapview(powerplants_sf$geometry)
 
 #Filter for just powerplants found in NC
 nc_powerplants_sf <- powerplants_sf %>% 
@@ -239,19 +249,28 @@ ggplot() +
 
 ```{r}
 #Compute HUC8 wind energy
-
-
-
+wind_energy_huc8 <- 
+  read.csv("https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv",
+  colClasses=c('HUC_12' = 'factor')) %>%
+  mutate(HUC_8 = substr(HUC_12,1,8)) %>%
+  group_by(HUC_8) %>%
+  summarize(WindPower = sum(kWhkm2day))         # these values should be smaller?? double check videos
 
 #Join to HUC_8 features
+huc8_sf_wind <- huc8_sf %>%
+  left_join(wind_energy_huc8, by = 'HUC_8')
 
-
-
+# OR...
+#huc8_wind <- merge(x=huc8_sf,
+#                   y = wind_energy_huc8,
+#                   by.x = "HUC_8",
+#                   by.y = "HUC_8")
 
 #View the outputs
+mapview(huc8_sf_wind, zcol = "WindPower")
 
-
-
+ggplot(data = huc8_sf_wind) +
+  geom_sf(aes(fill=WindPower))
 ```
 
 ## 3.1 Spatial data aggregation with `group_by` and `summarize`.
@@ -274,18 +293,15 @@ mapview(state_sf)
 
 ```{r Aggregate the HUC data on an attribute, saving as huc2_sf}
 #List the unique values in the DWQ_Basin field
-
-
-
+unique(huc8_sf$DWQ_Basin)
 
 #Summarize on DWQ Basin value
+huc2_sf <- huc8_sf %>%
+  group_by(DWQ_Basin) %>%
+  summarize(ACRES=sum(ACRES), SQ_MILE=sum(SQ_MILES))
 
-
-
-
-  
 #Map the data
-
+mapview(huc2_sf, zcol="ACRES")
 ```
 
 ## 3.2 Transforming coordinate reference systems of datasets
@@ -352,7 +368,7 @@ neuse_counties_sf <- neuse_sf %>%
   st_intersection(counties_sf_utm)
 myMap + mapview(neuse_counties_sf, alpha.regions = 0)
 
-#Update the area the features, now that some are clipped
+#Update the area the features, now that some are clipped        # ERROR HERE***
 neuse_counties_sf <- neuse_counties_sf %>% 
   mutate(Area_m2 = st_area(neuse_counties_sf$geometry)) %>% 
   as.numeric()
@@ -364,19 +380,19 @@ mapview(neuse_counties_sf, zcol='Area_m2')
 
 ```{r EXERCISE: Clipping}
 #Select the Triangle County from the 
+the_triangle <- counties_sf_utm %>%
+  filter(NAME %in% c("Chatham", "Durham", "Orange", "Wake"))
 
-
-
-  
 #Grab the intersecting HUC_8s
+the_hucs <- huc8_sf_utm[the_triangle,]
 
-
+mapview(the_hucs) + mapview(the_triangle, alpha.regions=0, color = 'red')
 
 #Intersect the HUC_8s
+the_huc_clip <- huc2_utm %>%
+  st_intersection(the_triangle)
 
-
-
-
+mapview(the_huc_clip) + mapview(the_triangle, alpha.regions=0, color='red')
 ```
 
 ## 3.3 Geometry manipulations
@@ -460,10 +476,13 @@ mapView(counties_sf[resultMask,])
 > Questions: how might we use the `st_buffer` function to show all counties within 30km of the site?
 
 ```{r Select counties within a 30 km area from the site}
+site_30km <- st_buffer(theSite_sfc_transformed,30000)
+mapview(site_30km)
 
+resultMask_30km <- st_intersects(counties_sf_utm, site_30km, sparse=FALSE)
 
-
-                            
+selCounties_30km <- counties_sf_utm[resultMask_30km,]
+mapview(selCounties_30km)
 ```
 
 # 4. VISUALIZATION
