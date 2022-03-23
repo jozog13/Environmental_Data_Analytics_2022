@@ -49,7 +49,7 @@ In this exercise, we will be exploring stream gage height data in Nebraska corre
 
 ```{r Read the county data into an sf dataframe}
 #3. Read in Counties shapefile into an sf dataframe, filtering for just NE counties
-counties_sf<- st_read('../Data/Spatial/cb_2018_us_county_20m.shp') %>% 
+counties_sf<- st_read('./Data/Spatial/cb_2018_us_county_20m.shp') %>% 
   filter(STATEFP == 31)
 
 #4. Reveal the CRS of the counties features
