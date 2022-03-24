@@ -142,7 +142,7 @@ df_withdrawals <- data.frame("Month" = rep(1:12),
 
 #Modify the dataframe to include the facility name and type as well as the date (as date object)
 df_withdrawals <- df_withdrawals %>% 
-  mutate(Registrant = !!the_registrant,
+  mutate(Registrant = !!the_registrant, # !! tells R to set it to vector that is stored as a variable outside of the function
          Facility_name = !!the_facility_name,
          Facility_type = !!the_facility_type,
          Date = my(paste(Month,"-",Year)))
